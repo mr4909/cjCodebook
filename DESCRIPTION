@@ -1,4 +1,4 @@
-Package: justiceR
+Package: databookR
 Title: Criminal justice focused analysis tools
 Version: 0.0.0.9000
 Authors@R: 
@@ -18,7 +18,6 @@ Imports:
     kableExtra
 Suggests:
     testthat,
-    mockery,
     rmarkdown,
     devtools
 VignetteBuilder: knitr
