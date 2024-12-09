@@ -1,4 +1,4 @@
-# test-generate_codebook.R
+# test-databook.R
 library(testthat)
 library(dplyr)
 library(knitr)
@@ -28,62 +28,62 @@ var_desc <- list(
   logical_var = "Logical variable indicating TRUE or FALSE"
 )
 
-test_that("generate_codebook returns error for non-data.frame input", {
-  expect_error(generate_codebook(list(a = 1, b = 2)), "must be a data frame")
+test_that("databook returns error for non-data.frame input", {
+  expect_error(databook(list(a = 1, b = 2)), "must be a data frame")
 })
 
-test_that("generate_codebook returns error for empty data frame", {
-  expect_error(generate_codebook(data.frame()), "is empty")
+test_that("databook returns error for empty data frame", {
+  expect_error(databook(data.frame()), "is empty")
 })
 
-test_that("generate_codebook returns error for data frames with list-columns", {
+test_that("databook returns error for data frames with list-columns", {
   df <- data.frame(
     a = I(list(1, 2, 3)),
     b = c("x", "y", "z")
   )
-  expect_error(generate_codebook(df), "contains list-columns")
+  expect_error(databook(df), "contains list-columns")
 })
 
-test_that("generate_codebook returns error for duplicate column names", {
+test_that("databook returns error for duplicate column names", {
   df <- data.frame(
     a = 1:3,
     a = 4:6,
     check.names = FALSE  # Prevent R from renaming duplicate columns
   )
-  expect_error(generate_codebook(df), "duplicate column names")
+  expect_error(databook(df), "duplicate column names")
 })
 
-test_that("generate_codebook returns error for invalid var_descriptions", {
+test_that("databook returns error for invalid var_descriptions", {
   df <- data.frame(
     a = 1:3,
     b = c("x", "y", "z")
   )
 
   # Non-named list
-  expect_error(generate_codebook(df, var_descriptions = list("Description for a", "Description for b")),
+  expect_error(databook(df, var_descriptions = list("Description for a", "Description for b")),
                "must be named")
 
   # Names not matching
-  expect_error(generate_codebook(df, var_descriptions = list(a = "Description for a", c = "Invalid")),
+  expect_error(databook(df, var_descriptions = list(a = "Description for a", c = "Invalid")),
                "do not match")
 
   # Non-character descriptions
-  expect_error(generate_codebook(df, var_descriptions = list(a = 123, b = "Valid")),
+  expect_error(databook(df, var_descriptions = list(a = 123, b = "Valid")),
                "must be single, non-empty character strings")
 })
 
-test_that("generate_codebook returns error for invalid hide_statistics", {
+test_that("databook returns error for invalid hide_statistics", {
   df <- data.frame(
     a = 1:3,
     b = c("x", "y", "z")
   )
 
   # Non-character vector
-  expect_error(generate_codebook(df, hide_statistics = 123),
+  expect_error(databook(df, hide_statistics = 123),
                "must be a character vector")
 
   # Names not matching
-  expect_error(generate_codebook(df, hide_statistics = c("a", "c")),
+  expect_error(databook(df, hide_statistics = c("a", "c")),
                "do not match")
 })
 
@@ -92,12 +92,12 @@ test_that("generate_codebook returns error for invalid hide_statistics", {
 
 
 
-test_that("generate_codebook handles numeric variables correctly", {
+test_that("databook handles numeric variables correctly", {
   df <- data.frame(
     num = c(1, 2, 3, 4, 5, NA)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check if the statistics for num are correctly calculated
   expect_match(codebook, "Min: 1.0")
@@ -107,12 +107,12 @@ test_that("generate_codebook handles numeric variables correctly", {
   expect_match(codebook, "SD: 1.6")
 })
 
-test_that("generate_codebook handles categorical variables correctly", {
+test_that("databook handles categorical variables correctly", {
   df <- data.frame(
     cat = factor(c("apple", "banana", "apple", "cherry", "banana", "banana", NA))
   )
 
-  codebook <- generate_codebook(df, top_n = 2)
+  codebook <- databook(df, top_n = 2)
 
   # Expect top 2 categories to be banana and apple with one decimal in percentage
   expect_match(codebook, "Top 2 Categories:")
@@ -120,35 +120,35 @@ test_that("generate_codebook handles categorical variables correctly", {
   expect_match(codebook, "apple = 2 \\(33.3%\\)")
 })
 
-test_that("generate_codebook handles date variables correctly", {
+test_that("databook handles date variables correctly", {
   df <- data.frame(
     date = as.Date(c("2020-01-01", "2020-05-15", NA, "2020-12-31"))
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   expect_match(codebook, "Min: 2020-01-01")
   expect_match(codebook, "Max: 2020-12-31")
 })
 
-test_that("generate_codebook handles logical variables correctly", {
+test_that("databook handles logical variables correctly", {
   df <- data.frame(
     flag = c(TRUE, FALSE, TRUE, TRUE, NA, FALSE)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check for correctly formatted TRUE statistics
   expect_match(codebook, "TRUE: 3 \\(60.0%\\)<br>FALSE: 2 \\(40.0%\\)")
 })
 
-test_that("generate_codebook hides statistics for specified variables", {
+test_that("databook hides statistics for specified variables", {
   df <- data.frame(
     num = c(1, 2, 3, 4, 5),
     cat = factor(c("A", "B", "A", "C", "B"))
   )
 
-  codebook <- generate_codebook(df, hide_statistics = "num")
+  codebook <- databook(df, hide_statistics = "num")
 
   expect_match(codebook, "num")
   expect_match(codebook, "Hidden")
@@ -157,7 +157,7 @@ test_that("generate_codebook hides statistics for specified variables", {
   expect_match(codebook, "A = 2 \\(40.0%\\)<br>B = 2 \\(40.0%\\)<br>C = 1 \\(20.0%\\)")
 })
 
-test_that("generate_codebook applies variable descriptions correctly", {
+test_that("databook applies variable descriptions correctly", {
   df <- data.frame(
     var1 = c(1, 2, 3),
     var2 = factor(c("X", "Y", "X"))
@@ -168,13 +168,13 @@ test_that("generate_codebook applies variable descriptions correctly", {
     var2 = "Second variable"
   )
 
-  codebook <- generate_codebook(df, var_descriptions = descriptions)
+  codebook <- databook(df, var_descriptions = descriptions)
 
   expect_match(codebook, "First variable")
   expect_match(codebook, "Second variable")
 })
 
-test_that("generate_codebook handles all NA variables", {
+test_that("databook handles all NA variables", {
   df <- data.frame(
     all_na_numeric = c(NA, NA, NA),
     all_na_factor = factor(c(NA, NA, NA)),
@@ -183,35 +183,35 @@ test_that("generate_codebook handles all NA variables", {
     all_na_logical = c(NA, NA, NA)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   expect_match(codebook, "All values are NA", fixed = TRUE, all = TRUE)
 })
 
-test_that("generate_codebook returns error for invalid top_n", {
+test_that("databook returns error for invalid top_n", {
   df <- data.frame(
     a = 1:3
   )
 
   # Non-numeric top_n
-  expect_error(generate_codebook(df, top_n = "five"),
+  expect_error(databook(df, top_n = "five"),
                "'top_n' must be a single positive integer")
 
   # Negative top_n
-  expect_error(generate_codebook(df, top_n = -3),
+  expect_error(databook(df, top_n = -3),
                "'top_n' must be a single positive integer")
 
   # Non-integer top_n
-  expect_error(generate_codebook(df, top_n = 2.5),
+  expect_error(databook(df, top_n = 2.5),
                "'top_n' must be a single positive integer")
 
   # Undefined variable
-  expect_error(generate_codebook(df, top_n = undefined_var),
+  expect_error(databook(df, top_n = undefined_var),
                "'top_n' must be a single positive integer")
 })
 
 
-test_that("generate_codebook handles unsupported variable types", {
+test_that("databook handles unsupported variable types", {
   df <- data.frame(
     a = 1:3,
     b = I(list(1, 2, 3))
@@ -224,12 +224,12 @@ test_that("generate_codebook handles unsupported variable types", {
     b = c(1+1i, 2+2i, 3+3i)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   expect_match(codebook, "Unsupported type")
 })
 
-test_that("generate_codebook processes empty columns correctly", {
+test_that("databook processes empty columns correctly", {
   df <- data.frame(
     empty_numeric = numeric(0),
     empty_factor = factor(character()),
@@ -239,16 +239,16 @@ test_that("generate_codebook processes empty columns correctly", {
   )
 
   # Since the data frame has 0 rows, it should raise an error
-  expect_error(generate_codebook(df), "is empty")
+  expect_error(databook(df), "is empty")
 })
 
-test_that("generate_codebook includes HTML formatting in statistics", {
+test_that("databook includes HTML formatting in statistics", {
   df <- data.frame(
     num = c(1, 2, 3, 4, 5),
     cat = factor(c("A", "B", "A", "C", "B"))
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check for HTML line breaks
   expect_match(codebook, "<br>", fixed = TRUE)
@@ -259,7 +259,7 @@ test_that("generate_codebook includes HTML formatting in statistics", {
   expect_match(codebook, "<tbody", fixed = TRUE)
 })
 
-test_that("generate_codebook handles large data frames efficiently", {
+test_that("databook handles large data frames efficiently", {
   # Create a large data frame
   large_df <- data.frame(
     num = rnorm(10000),
@@ -269,16 +269,16 @@ test_that("generate_codebook handles large data frames efficiently", {
   )
 
   # Expect no errors and a valid codebook
-  expect_silent(codebook <- generate_codebook(large_df))
+  expect_silent(codebook <- databook(large_df))
   expect_true(nchar(as.character(codebook)) > 0)
 })
 
-test_that("generate_codebook handles NA values correctly in logical variables", {
+test_that("databook handles NA values correctly in logical variables", {
   df <- data.frame(
     logical_var = c(TRUE, FALSE, NA, TRUE, NA)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # TRUE: 2 (66.7%)
   # FALSE: 1 (33.3%)
@@ -286,18 +286,18 @@ test_that("generate_codebook handles NA values correctly in logical variables", 
   expect_match(codebook, "FALSE: 1 \\(33.3%\\)")
 })
 
-test_that("generate_codebook does not include statistics for unsupported types", {
+test_that("databook does not include statistics for unsupported types", {
   df <- data.frame(
     a = 1:3,
     b = complex(real = 1:3, imaginary = 4:6)
   )
 
   # Since 'b' is complex, which is unsupported, check the message and that 'Unsupported type' is present
-  expect_message(codebook <- generate_codebook(df), "has an unsupported type")
+  expect_message(codebook <- databook(df), "has an unsupported type")
   expect_match(codebook, "Unsupported type")
 })
 
-test_that("generate_codebook handles progress bar gracefully when 'progress' package is unavailable", {
+test_that("databook handles progress bar gracefully when 'progress' package is unavailable", {
   # Mock the 'requireNamespace' function to return FALSE for 'progress'
   mock_requireNamespace <- function(package, quietly = TRUE) {
     if (package == "progress") {
@@ -307,8 +307,8 @@ test_that("generate_codebook handles progress bar gracefully when 'progress' pac
     }
   }
 
-  # Stub 'requireNamespace' in 'generate_codebook' to use the mock function
-  stub(generate_codebook, 'requireNamespace', mock_requireNamespace)
+  # Stub 'requireNamespace' in 'databook' to use the mock function
+  stub(databook, 'requireNamespace', mock_requireNamespace)
 
   # Create a mock data frame
   df <- data.frame(
@@ -318,12 +318,12 @@ test_that("generate_codebook handles progress bar gracefully when 'progress' pac
 
   # Expect a message about the progress bar being disabled
   expect_message(
-    generate_codebook(df),
+    databook(df),
     "Package 'progress' not found. Progress bar will be disabled."
   )
 })
 
-test_that("generate_codebook handles variables with single unique value", {
+test_that("databook handles variables with single unique value", {
   df <- data.frame(
     single_num = rep(5, 5),
     single_cat = factor(rep("A", 5)),
@@ -332,7 +332,7 @@ test_that("generate_codebook handles variables with single unique value", {
     single_logical = rep(TRUE, 5)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # # Check number of unique values
   expect_match(codebook, "1")
@@ -358,12 +358,12 @@ test_that("generate_codebook handles variables with single unique value", {
   expect_match(codebook, "TRUE: 5 \\(100.0%\\)")
 })
 
-test_that("generate_codebook handles factors with unused levels", {
+test_that("databook handles factors with unused levels", {
   df <- data.frame(
     cat = factor(c("A", "B", "A", "C", "B"), levels = c("A", "B", "C", "D"))
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check that only used levels are counted
   expect_match(codebook, "A = 2")
@@ -374,12 +374,12 @@ test_that("generate_codebook handles factors with unused levels", {
   expect_no_match(codebook, "D = ")
 })
 
-test_that("generate_codebook handles factors with all unused levels", {
+test_that("databook handles factors with all unused levels", {
   df <- data.frame(
     cat = factor(rep(NA, 5), levels = c("A", "B", "C", "D"))
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check that the statistics indicate all values are NA
   expect_match(codebook, "All values are NA")
@@ -391,12 +391,12 @@ test_that("generate_codebook handles factors with all unused levels", {
   expect_no_match(codebook, "D = ", fixed = TRUE)
 })
 
-test_that("generate_codebook handles character variables correctly", {
+test_that("databook handles character variables correctly", {
   df <- data.frame(
     char = c("apple", "banana", "apple", "cherry", "banana", "banana", NA)
   )
 
-  codebook <- generate_codebook(df, top_n = 2)
+  codebook <- databook(df, top_n = 2)
 
   # Check that the codebook includes "Top 2 Categories:"
   expect_match(codebook, "Top 2 Categories:")
@@ -409,7 +409,7 @@ test_that("generate_codebook handles character variables correctly", {
   expect_no_match(codebook, "Hidden", fixed = TRUE)
 })
 
-test_that("generate_codebook correctly calculates missing values", {
+test_that("databook correctly calculates missing values", {
   df <- data.frame(
     num = c(1, 2, NA, 4, NA),
     cat = factor(c("A", NA, "A", "B", NA)),
@@ -418,7 +418,7 @@ test_that("generate_codebook correctly calculates missing values", {
     logical = c(TRUE, NA, FALSE, NA, TRUE)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check percentage missing
   expect_match(codebook, "40.0%", fixed = TRUE) # num missing: 2/5 = 40%
@@ -428,12 +428,12 @@ test_that("generate_codebook correctly calculates missing values", {
   expect_match(codebook, "40.0%", fixed = TRUE) # logical missing: 2/5 = 40%
 })
 
-test_that("generate_codebook correctly rounds statistics", {
+test_that("databook correctly rounds statistics", {
   df <- data.frame(
     num = c(1.234, 2.345, 3.456, 4.567, 5.678)
   )
 
-  codebook <- generate_codebook(df)
+  codebook <- databook(df)
 
   # Check that numbers are rounded to one decimal place
   expect_match(codebook, "Min: 1.2")
@@ -443,13 +443,13 @@ test_that("generate_codebook correctly rounds statistics", {
   expect_match(codebook, "SD: 1.8")
 })
 
-test_that("generate_codebook handles top_n parameter correctly", {
+test_that("databook handles top_n parameter correctly", {
   df <- data.frame(
     cat = factor(c("A", "B", "A", "C", "B", "D", "E", "B", "A"))
   )
 
   # 1. top_n less than number of categories
-  codebook1 <- generate_codebook(df, top_n = 2)
+  codebook1 <- databook(df, top_n = 2)
 
   # Check that the codebook includes "Top 2 Categories:"
   expect_match(codebook1, "Top 2 Categories:")
@@ -464,7 +464,7 @@ test_that("generate_codebook handles top_n parameter correctly", {
   expect_no_match(codebook1, "E = 1 \\(11\\.1%\\)", fixed = TRUE)
 
   # 2. top_n equal to number of categories
-  codebook2 <- generate_codebook(df, top_n = 5)
+  codebook2 <- databook(df, top_n = 5)
 
   # Check that the codebook includes "All Categories:"
   expect_match(codebook2, "All Categories:")
@@ -477,7 +477,7 @@ test_that("generate_codebook handles top_n parameter correctly", {
   expect_match(codebook2, "E = 1 \\(11\\.1%\\)")
 
   # 3. top_n greater than number of categories
-  codebook3 <- generate_codebook(df, top_n = 10)
+  codebook3 <- databook(df, top_n = 10)
 
   # Check that the codebook includes "All Categories:"
   expect_match(codebook3, "All Categories:")
@@ -490,7 +490,7 @@ test_that("generate_codebook handles top_n parameter correctly", {
   expect_match(codebook3, "E = 1 \\(11\\.1%\\)")
 })
 
-test_that("generate_codebook can handle variables with mixed types appropriately", {
+test_that("databook can handle variables with mixed types appropriately", {
   # Define var_desc with names matching df columns
   var_desc <- list(
     num = "Numeric variable for testing",
@@ -511,7 +511,7 @@ test_that("generate_codebook can handle variables with mixed types appropriately
   )
 
   # Generate codebook, hiding 'char' statistics and setting top_n = 3
-  codebook <- generate_codebook(df, var_descriptions = var_desc, hide_statistics = "char", top_n = 3)
+  codebook <- databook(df, var_descriptions = var_desc, hide_statistics = "char", top_n = 3)
 
   # Check that 'char' statistics are hidden
   expect_match(codebook, "char")

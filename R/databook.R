@@ -164,7 +164,7 @@ get_logical_stats <- function(var) {
 #'   start_date = "Date of supervision start date",
 #'   active = "Active status of the client"
 #' )
-#' generate_codebook(df, var_descriptions = var_desc)
+#' databook(df, var_descriptions = var_desc)
 #' }
 #'
 #' @importFrom dplyr bind_rows rename_with %>% everything
@@ -175,7 +175,7 @@ get_logical_stats <- function(var) {
 #' @importFrom kableExtra kable_styling
 #' @importFrom progress progress_bar
 #' @export
-generate_codebook <- function(df, var_descriptions = NULL, hide_statistics = NULL, top_n = 5) {
+databook <- function(df, var_descriptions = NULL, hide_statistics = NULL, top_n = 5) {
 
   ### 1. Input Validation ###
 
